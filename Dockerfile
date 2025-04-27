@@ -1,17 +1,21 @@
-# Use an official Python runtime
+# Use an official lightweight Python image
 FROM python:3.12-slim
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy requirements (later optional) and app code
-COPY app.py ./
+# Copy only the requirements file first (if you had one)
+# COPY requirements.txt ./
+# RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Flask
+# --- Since we have very few dependencies, just install Flask directly ---
 RUN pip install flask
 
-# Expose the port the app runs on
+# Now copy the application code
+COPY app.py ./
+
+# Expose the app's port
 EXPOSE 5000
 
-# Run the application
+# Command to run the app
 CMD ["python", "app.py"]
