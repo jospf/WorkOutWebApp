@@ -28,7 +28,7 @@ Designed to run locally or inside a Docker container for easy deployment to a NA
 
     ```bash
     git clone [your repo url]
-    cd workout-tracker
+    cd WorkOutWebApp
     ```
 
 2. Create a Python virtual environment and activate it:
