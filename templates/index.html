@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Workout Tracker</title>
+</head>
+<body>
+  <h1>Workout Tracker</h1>
+
+  <h2>Add New Exercise</h2>
+  <form id="exercise-form">
+    <input type="text" id="name" placeholder="Exercise Name" required>
+    <input type="number" id="sets" placeholder="Sets" required>
+    <input type="number" id="reps" placeholder="Reps" required>
+    <button type="submit">Add Exercise</button>
+  </form>
+
+  <h2>Logged Exercises</h2>
+  <ul id="exercise-list">
+    <!-- Exercises will appear here -->
+  </ul>
+
+  <script>
+    const form = document.getElementById('exercise-form');
+    const exerciseList = document.getElementById('exercise-list');
+
+    // Fetch and display exercises
+    function loadExercises() {
+      fetch('/exercises')
+        .then(response => response.json())
+        .then(data => {
+          exerciseList.innerHTML = '';
+          data.forEach(([id, name, sets, reps, date]) => {
+            const li = document.createElement('li');
+            li.textContent = `${name}: ${sets} sets of ${reps} reps (${new Date(date).toLocaleString()})`;
+            exerciseList.appendChild(li);
+          });
+        })
+        .catch(err => console.error('Error loading exercises:', err));
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const sets = parseInt(document.getElementById('sets').value, 10);
+      const reps = parseInt(document.getElementById('reps').value, 10);
+
+      fetch('/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, sets, reps })
+      })
+      .then(response => response.json())
+      .then(() => {
+        form.reset();
+        loadExercises();
+      })
+      .catch(err => console.error('Error adding exercise:', err));
+    });
+
+    // Initial load
+    loadExercises();
+  </script>
+</body>
+</html>

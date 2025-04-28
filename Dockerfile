@@ -13,6 +13,7 @@ RUN pip install flask
 
 # Now copy the application code
 COPY app.py ./
+COPY templates/ ./templates/
 
 # Expose the app's port
 EXPOSE 5000

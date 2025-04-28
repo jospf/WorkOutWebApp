@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import sqlite3
 
 app = Flask(__name__)
@@ -21,7 +21,7 @@ def init_db():
 
 @app.route('/')
 def home():
-    return "Workout Tracker API Running!"
+    return render_template('index.html')
 
 @app.route('/exercises', methods=['GET'])
 def get_exercises():
