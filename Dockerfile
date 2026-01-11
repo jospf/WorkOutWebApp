@@ -4,16 +4,14 @@ FROM python:3.12-slim
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy only the requirements file first (if you had one)
-# COPY requirements.txt ./
-# RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements file first to leverage Docker cache
+COPY requirements.txt .
 
-# --- Since we have very few dependencies, just install Flask directly ---
-RUN pip install flask
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Now copy the application code
-COPY app.py ./
-COPY templates/ ./templates/
+# Copy the rest of the application code
+COPY . .
 
 # Expose the app's port
 EXPOSE 5000

@@ -1,28 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Workout Tracker</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <h1>Workout Tracker</h1>
+  <div class="container">
+    <h1>Workout Tracker</h1>
 
-  <h2>Add New Exercise</h2>
-  <form id="exercise-form">
-    <input type="text" id="name" placeholder="Exercise Name" required>
-    <input type="number" id="sets" placeholder="Sets" required>
-    <input type="number" id="reps" placeholder="Reps" required>
-    <button type="submit">Add Exercise</button>
-  </form>
+    <div class="card">
+      <form id="exercise-form">
+        <h2>Add New Exercise</h2>
+        <input type="text" id="name" placeholder="Exercise Name" required>
+        <input type="number" id="sets" placeholder="Sets" required>
+        <input type="number" id="reps" placeholder="Reps" required>
+        <button type="submit">Add Exercise</button>
+      </form>
+    </div>
 
-  <h2>Logged Exercises</h2>
-  <ul id="exercise-list">
-    <!-- Exercises will appear here -->
-  </ul>
+    <ul id="exercise-list">
+      <!-- Exercises will appear here -->
+    </ul>
+  </div>
 
   <script>
     const form = document.getElementById('exercise-form');
     const exerciseList = document.getElementById('exercise-list');
+    let isEditing = false;
+    let currentEditId = null;
 
     // Fetch and display exercises
     function loadExercises() {
@@ -32,11 +44,41 @@
           exerciseList.innerHTML = '';
           data.forEach(([id, name, sets, reps, date]) => {
             const li = document.createElement('li');
-            li.textContent = `${name}: ${sets} sets of ${reps} reps (${new Date(date).toLocaleString()})`;
+            li.innerHTML = `
+              <div class="exercise-info">
+                <span class="exercise-name">${name}</span>
+                <span class="exercise-details">${sets} sets × ${reps} reps • ${new Date(date).toLocaleDateString()}</span>
+              </div>
+              <div class="actions">
+                <button class="btn-icon" onclick="editExercise(${id}, '${name}', ${sets}, ${reps})">Edit</button>
+                <button class="btn-icon btn-delete" onclick="deleteExercise(${id})">Delete</button>
+              </div>
+            `;
             exerciseList.appendChild(li);
           });
         })
         .catch(err => console.error('Error loading exercises:', err));
+    }
+
+    // Delete exercise
+    function deleteExercise(id) {
+      if (!confirm('Are you sure?')) return;
+      fetch(`/delete/${id}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(() => loadExercises())
+        .catch(err => console.error('Error deleting exercise:', err));
+    }
+
+    // Edit exercise
+    window.editExercise = function (id, name, sets, reps) {
+      document.getElementById('name').value = name;
+      document.getElementById('sets').value = sets;
+      document.getElementById('reps').value = reps;
+      isEditing = true;
+      currentEditId = id;
+      document.querySelector('button[type="submit"]').textContent = 'Update Exercise';
+      // Scroll to form
+      document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
     }
 
     // Handle form submission
@@ -46,21 +88,28 @@
       const sets = parseInt(document.getElementById('sets').value, 10);
       const reps = parseInt(document.getElementById('reps').value, 10);
 
-      fetch('/add', {
-        method: 'POST',
+      const url = isEditing ? `/update/${currentEditId}` : '/add';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, sets, reps })
       })
-      .then(response => response.json())
-      .then(() => {
-        form.reset();
-        loadExercises();
-      })
-      .catch(err => console.error('Error adding exercise:', err));
+        .then(response => response.json())
+        .then(() => {
+          form.reset();
+          isEditing = false;
+          currentEditId = null;
+          document.querySelector('button[type="submit"]').textContent = 'Add Exercise';
+          loadExercises();
+        })
+        .catch(err => console.error('Error adding/updating exercise:', err));
     });
 
     // Initial load
     loadExercises();
   </script>
 </body>
+
 </html>
